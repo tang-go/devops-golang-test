@@ -1,0 +1,23 @@
+# permissions for end users to view myreplicasets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: go-test
+    app.kubernetes.io/managed-by: kustomize
+  name: myreplicaset-viewer-role
+rules:
+- apiGroups:
+  - mygroup.my.domain
+  resources:
+  - myreplicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - mygroup.my.domain
+  resources:
+  - myreplicasets/status
+  verbs:
+  - get

@@ -1,0 +1,7 @@
+apiVersion: v1
+name: myreplicaset
+description: A Helm chart for myreplicaset
+
+type: application
+version: 0.1.0
+appVersion: 0.1.0
