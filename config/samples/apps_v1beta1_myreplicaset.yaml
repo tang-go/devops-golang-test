@@ -1,0 +1,27 @@
+apiVersion: apps.opsblogs.cn/v1beta1
+kind: MyReplicaSet
+metadata:
+  labels:
+    app: nginx
+    owner: stathe
+    name: myreplicaset-sample
+    opsblogs.cn/version: 1.0.0
+    release: myreplicaset
+  name: myreplicaset-sample
+  namespace: project-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+

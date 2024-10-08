@@ -1,0 +1,121 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - apps.opsblogs.cn
+  resources:
+  - myreplicasets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps.opsblogs.cn
+  resources:
+  - myreplicasets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - apps.opsblogs.cn
+  resources:
+  - myreplicasets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metrics-auth-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: devops-test
+  name: myreplicaset-editor-role
+rules:
+- apiGroups:
+  - apps.opsblogs.cn
+  resources:
+  - myreplicasets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps.opsblogs.cn
+  resources:
+  - myreplicasets/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: devops-test
+  name: myreplicaset-viewer-role
+rules:
+- apiGroups:
+  - apps.opsblogs.cn
+  resources:
+  - myreplicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps.opsblogs.cn
+  resources:
+  - myreplicasets/status
+  verbs:
+  - get
