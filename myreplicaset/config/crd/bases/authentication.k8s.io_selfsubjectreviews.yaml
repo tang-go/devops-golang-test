@@ -1,0 +1,196 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: selfsubjectreviews.authentication.k8s.io
+spec:
+  group: authentication.k8s.io
+  names:
+    kind: SelfSubjectReview
+    listKind: SelfSubjectReviewList
+    plural: selfsubjectreviews
+    singular: selfsubjectreview
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          SelfSubjectReview contains the user information that the kube-apiserver has about the user making this request.
+          When using impersonation, users will receive the user info of the user being impersonated.  If impersonation or
+          request header authentication is used, any extra keys will have their case ignored and returned as lowercase.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          status:
+            description: Status is filled in by the server with the user attributes.
+            properties:
+              userInfo:
+                description: User attributes of the user making this request.
+                properties:
+                  extra:
+                    additionalProperties:
+                      description: ExtraValue masks the value so protobuf can generate
+                      items:
+                        type: string
+                      type: array
+                    description: Any additional information provided by the authenticator.
+                    type: object
+                  groups:
+                    description: The names of groups this user is a part of.
+                    items:
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: atomic
+                  uid:
+                    description: |-
+                      A unique value that identifies this user across time. If this user is
+                      deleted and another user by the same name is added, they will have
+                      different UIDs.
+                    type: string
+                  username:
+                    description: The name that uniquely identifies this user among
+                      all active users.
+                    type: string
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: false
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          SelfSubjectReview contains the user information that the kube-apiserver has about the user making this request.
+          When using impersonation, users will receive the user info of the user being impersonated.  If impersonation or
+          request header authentication is used, any extra keys will have their case ignored and returned as lowercase.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          status:
+            description: Status is filled in by the server with the user attributes.
+            properties:
+              userInfo:
+                description: User attributes of the user making this request.
+                properties:
+                  extra:
+                    additionalProperties:
+                      description: ExtraValue masks the value so protobuf can generate
+                      items:
+                        type: string
+                      type: array
+                    description: Any additional information provided by the authenticator.
+                    type: object
+                  groups:
+                    description: The names of groups this user is a part of.
+                    items:
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: atomic
+                  uid:
+                    description: |-
+                      A unique value that identifies this user across time. If this user is
+                      deleted and another user by the same name is added, they will have
+                      different UIDs.
+                    type: string
+                  username:
+                    description: The name that uniquely identifies this user among
+                      all active users.
+                    type: string
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: false
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          SelfSubjectReview contains the user information that the kube-apiserver has about the user making this request.
+          When using impersonation, users will receive the user info of the user being impersonated.  If impersonation or
+          request header authentication is used, any extra keys will have their case ignored and returned as lowercase.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          status:
+            description: Status is filled in by the server with the user attributes.
+            properties:
+              userInfo:
+                description: User attributes of the user making this request.
+                properties:
+                  extra:
+                    additionalProperties:
+                      description: ExtraValue masks the value so protobuf can generate
+                      items:
+                        type: string
+                      type: array
+                    description: Any additional information provided by the authenticator.
+                    type: object
+                  groups:
+                    description: The names of groups this user is a part of.
+                    items:
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: atomic
+                  uid:
+                    description: |-
+                      A unique value that identifies this user across time. If this user is
+                      deleted and another user by the same name is added, they will have
+                      different UIDs.
+                    type: string
+                  username:
+                    description: The name that uniquely identifies this user among
+                      all active users.
+                    type: string
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: false

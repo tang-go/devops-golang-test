@@ -1,0 +1,137 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: resourceclaimparameters.resource.k8s.io
+spec:
+  group: resource.k8s.io
+  names:
+    kind: ResourceClaimParameters
+    listKind: ResourceClaimParametersList
+    plural: resourceclaimparameters
+    singular: resourceclaimparameters
+  scope: Namespaced
+  versions:
+  - name: v1alpha2
+    schema:
+      openAPIV3Schema:
+        description: |-
+          ResourceClaimParameters defines resource requests for a ResourceClaim in an
+          in-tree format understood by Kubernetes.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          driverRequests:
+            description: |-
+              DriverRequests describes all resources that are needed for the
+              allocated claim. A single claim may use resources coming from
+              different drivers. For each driver, this array has at most one
+              entry which then may have one or more per-driver requests.
+
+
+              May be empty, in which case the claim can always be allocated.
+            items:
+              description: DriverRequests describes all resources that are needed
+                from one particular driver.
+              properties:
+                driverName:
+                  description: DriverName is the name used by the DRA driver kubelet
+                    plugin.
+                  type: string
+                requests:
+                  description: Requests describes all resources that are needed from
+                    the driver.
+                  items:
+                    description: ResourceRequest is a request for resources from one
+                      particular driver.
+                    properties:
+                      namedResources:
+                        description: NamedResources describes a request for resources
+                          with the named resources model.
+                        properties:
+                          selector:
+                            description: |-
+                              Selector is a CEL expression which must evaluate to true if a
+                              resource instance is suitable. The language is as defined in
+                              https://kubernetes.io/docs/reference/using-api/cel/
+
+
+                              In addition, for each type NamedResourcesin AttributeValue there is a map that
+                              resolves to the corresponding value of the instance under evaluation.
+                              For example:
+
+
+                                 attributes.quantity["a"].isGreaterThan(quantity("0")) &&
+                                 attributes.stringslice["b"].isSorted()
+                            type: string
+                        required:
+                        - selector
+                        type: object
+                      vendorParameters:
+                        description: |-
+                          VendorParameters are arbitrary setup parameters for the requested
+                          resource. They are ignored while allocating a claim.
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                    type: object
+                  type: array
+                  x-kubernetes-list-type: atomic
+                vendorParameters:
+                  description: |-
+                    VendorParameters are arbitrary setup parameters for all requests of the
+                    claim. They are ignored while allocating the claim.
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+              type: object
+            type: array
+            x-kubernetes-list-type: atomic
+          generatedFrom:
+            description: |-
+              If this object was created from some other resource, then this links
+              back to that resource. This field is used to find the in-tree representation
+              of the claim parameters when the parameter reference of the claim refers
+              to some unknown type.
+            properties:
+              apiGroup:
+                description: |-
+                  APIGroup is the group for the resource being referenced. It is
+                  empty for the core API. This matches the group in the APIVersion
+                  that is used when creating the resources.
+                type: string
+              kind:
+                description: |-
+                  Kind is the type of resource being referenced. This is the same
+                  value as in the parameter object's metadata, for example "ConfigMap".
+                type: string
+              name:
+                description: Name is the name of resource being referenced.
+                type: string
+            required:
+            - kind
+            - name
+            type: object
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          shareable:
+            description: |-
+              Shareable indicates whether the allocated claim is meant to be shareable
+              by multiple consumers at the same time.
+            type: boolean
+        type: object
+    served: true
+    storage: true

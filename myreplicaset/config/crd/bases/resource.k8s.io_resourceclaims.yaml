@@ -1,0 +1,362 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: resourceclaims.resource.k8s.io
+spec:
+  group: resource.k8s.io
+  names:
+    kind: ResourceClaim
+    listKind: ResourceClaimList
+    plural: resourceclaims
+    singular: resourceclaim
+  scope: Namespaced
+  versions:
+  - name: v1alpha2
+    schema:
+      openAPIV3Schema:
+        description: |-
+          ResourceClaim describes which resources are needed by a resource consumer.
+          Its status tracks whether the resource has been allocated and what the
+          resulting attributes are.
+
+
+          This is an alpha type and requires enabling the DynamicResourceAllocation
+          feature gate.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: |-
+              Spec describes the desired attributes of a resource that then needs
+              to be allocated. It can only be set once when creating the
+              ResourceClaim.
+            properties:
+              allocationMode:
+                description: |-
+                  Allocation can start immediately or when a Pod wants to use the
+                  resource. "WaitForFirstConsumer" is the default.
+                type: string
+              parametersRef:
+                description: |-
+                  ParametersRef references a separate object with arbitrary parameters
+                  that will be used by the driver when allocating a resource for the
+                  claim.
+
+
+                  The object must be in the same namespace as the ResourceClaim.
+                properties:
+                  apiGroup:
+                    description: |-
+                      APIGroup is the group for the resource being referenced. It is
+                      empty for the core API. This matches the group in the APIVersion
+                      that is used when creating the resources.
+                    type: string
+                  kind:
+                    description: |-
+                      Kind is the type of resource being referenced. This is the same
+                      value as in the parameter object's metadata, for example "ConfigMap".
+                    type: string
+                  name:
+                    description: Name is the name of resource being referenced.
+                    type: string
+                required:
+                - kind
+                - name
+                type: object
+              resourceClassName:
+                description: |-
+                  ResourceClassName references the driver and additional parameters
+                  via the name of a ResourceClass that was created as part of the
+                  driver deployment.
+                type: string
+            required:
+            - resourceClassName
+            type: object
+          status:
+            description: |-
+              Status describes whether the resource is available and with which
+              attributes.
+            properties:
+              allocation:
+                description: |-
+                  Allocation is set by the resource driver once a resource or set of
+                  resources has been allocated successfully. If this is not specified, the
+                  resources have not been allocated yet.
+                properties:
+                  availableOnNodes:
+                    description: |-
+                      This field will get set by the resource driver after it has allocated
+                      the resource to inform the scheduler where it can schedule Pods using
+                      the ResourceClaim.
+
+
+                      Setting this field is optional. If null, the resource is available
+                      everywhere.
+                    properties:
+                      nodeSelectorTerms:
+                        description: Required. A list of node selector terms. The
+                          terms are ORed.
+                        items:
+                          description: |-
+                            A null or empty node selector term matches no objects. The requirements of
+                            them are ANDed.
+                            The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.
+                          properties:
+                            matchExpressions:
+                              description: A list of node selector requirements by
+                                node's labels.
+                              items:
+                                description: |-
+                                  A node selector requirement is a selector that contains values, a key, and an operator
+                                  that relates the key and values.
+                                properties:
+                                  key:
+                                    description: The label key that the selector applies
+                                      to.
+                                    type: string
+                                  operator:
+                                    description: |-
+                                      Represents a key's relationship to a set of values.
+                                      Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.
+                                    type: string
+                                  values:
+                                    description: |-
+                                      An array of string values. If the operator is In or NotIn,
+                                      the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                      the values array must be empty. If the operator is Gt or Lt, the values
+                                      array must have a single element, which will be interpreted as an integer.
+                                      This array is replaced during a strategic merge patch.
+                                    items:
+                                      type: string
+                                    type: array
+                                    x-kubernetes-list-type: atomic
+                                required:
+                                - key
+                                - operator
+                                type: object
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            matchFields:
+                              description: A list of node selector requirements by
+                                node's fields.
+                              items:
+                                description: |-
+                                  A node selector requirement is a selector that contains values, a key, and an operator
+                                  that relates the key and values.
+                                properties:
+                                  key:
+                                    description: The label key that the selector applies
+                                      to.
+                                    type: string
+                                  operator:
+                                    description: |-
+                                      Represents a key's relationship to a set of values.
+                                      Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.
+                                    type: string
+                                  values:
+                                    description: |-
+                                      An array of string values. If the operator is In or NotIn,
+                                      the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                      the values array must be empty. If the operator is Gt or Lt, the values
+                                      array must have a single element, which will be interpreted as an integer.
+                                      This array is replaced during a strategic merge patch.
+                                    items:
+                                      type: string
+                                    type: array
+                                    x-kubernetes-list-type: atomic
+                                required:
+                                - key
+                                - operator
+                                type: object
+                              type: array
+                              x-kubernetes-list-type: atomic
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        type: array
+                        x-kubernetes-list-type: atomic
+                    required:
+                    - nodeSelectorTerms
+                    type: object
+                    x-kubernetes-map-type: atomic
+                  resourceHandles:
+                    description: |-
+                      ResourceHandles contain the state associated with an allocation that
+                      should be maintained throughout the lifetime of a claim. Each
+                      ResourceHandle contains data that should be passed to a specific kubelet
+                      plugin once it lands on a node. This data is returned by the driver
+                      after a successful allocation and is opaque to Kubernetes. Driver
+                      documentation may explain to users how to interpret this data if needed.
+
+
+                      Setting this field is optional. It has a maximum size of 32 entries.
+                      If null (or empty), it is assumed this allocation will be processed by a
+                      single kubelet plugin with no ResourceHandle data attached. The name of
+                      the kubelet plugin invoked will match the DriverName set in the
+                      ResourceClaimStatus this AllocationResult is embedded in.
+                    items:
+                      description: ResourceHandle holds opaque resource data for processing
+                        by a specific kubelet plugin.
+                      properties:
+                        data:
+                          description: |-
+                            Data contains the opaque data associated with this ResourceHandle. It is
+                            set by the controller component of the resource driver whose name
+                            matches the DriverName set in the ResourceClaimStatus this
+                            ResourceHandle is embedded in. It is set at allocation time and is
+                            intended for processing by the kubelet plugin whose name matches
+                            the DriverName set in this ResourceHandle.
+
+
+                            The maximum size of this field is 16KiB. This may get increased in the
+                            future, but not reduced.
+                          type: string
+                        driverName:
+                          description: |-
+                            DriverName specifies the name of the resource driver whose kubelet
+                            plugin should be invoked to process this ResourceHandle's data once it
+                            lands on a node. This may differ from the DriverName set in
+                            ResourceClaimStatus this ResourceHandle is embedded in.
+                          type: string
+                        structuredData:
+                          description: If StructuredData is set, then it needs to
+                            be used instead of Data.
+                          properties:
+                            nodeName:
+                              description: |-
+                                NodeName is the name of the node providing the necessary resources
+                                if the resources are local to a node.
+                              type: string
+                            results:
+                              description: Results lists all allocated driver resources.
+                              items:
+                                description: |-
+                                  DriverAllocationResult contains vendor parameters and the allocation result for
+                                  one request.
+                                properties:
+                                  namedResources:
+                                    description: NamedResources describes the allocation
+                                      result when using the named resources model.
+                                    properties:
+                                      name:
+                                        description: Name is the name of the selected
+                                          resource instance.
+                                        type: string
+                                    required:
+                                    - name
+                                    type: object
+                                  vendorRequestParameters:
+                                    description: |-
+                                      VendorRequestParameters are the per-request configuration parameters
+                                      from the time that the claim was allocated.
+                                    type: object
+                                    x-kubernetes-preserve-unknown-fields: true
+                                type: object
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            vendorClaimParameters:
+                              description: |-
+                                VendorClaimParameters are the per-claim configuration parameters
+                                from the resource claim parameters at the time that the claim was
+                                allocated.
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                            vendorClassParameters:
+                              description: |-
+                                VendorClassParameters are the per-claim configuration parameters
+                                from the resource class at the time that the claim was allocated.
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          required:
+                          - results
+                          type: object
+                      type: object
+                    type: array
+                    x-kubernetes-list-type: atomic
+                  shareable:
+                    description: |-
+                      Shareable determines whether the resource supports more
+                      than one consumer at a time.
+                    type: boolean
+                type: object
+              deallocationRequested:
+                description: |-
+                  DeallocationRequested indicates that a ResourceClaim is to be
+                  deallocated.
+
+
+                  The driver then must deallocate this claim and reset the field
+                  together with clearing the Allocation field.
+
+
+                  While DeallocationRequested is set, no new consumers may be added to
+                  ReservedFor.
+                type: boolean
+              driverName:
+                description: |-
+                  DriverName is a copy of the driver name from the ResourceClass at
+                  the time when allocation started.
+                type: string
+              reservedFor:
+                description: |-
+                  ReservedFor indicates which entities are currently allowed to use
+                  the claim. A Pod which references a ResourceClaim which is not
+                  reserved for that Pod will not be started.
+
+
+                  There can be at most 32 such reservations. This may get increased in
+                  the future, but not reduced.
+                items:
+                  description: |-
+                    ResourceClaimConsumerReference contains enough information to let you
+                    locate the consumer of a ResourceClaim. The user must be a resource in the same
+                    namespace as the ResourceClaim.
+                  properties:
+                    apiGroup:
+                      description: |-
+                        APIGroup is the group for the resource being referenced. It is
+                        empty for the core API. This matches the group in the APIVersion
+                        that is used when creating the resources.
+                      type: string
+                    name:
+                      description: Name is the name of resource being referenced.
+                      type: string
+                    resource:
+                      description: Resource is the type of resource being referenced,
+                        for example "pods".
+                      type: string
+                    uid:
+                      description: UID identifies exactly one incarnation of the resource.
+                      type: string
+                  required:
+                  - name
+                  - resource
+                  - uid
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - uid
+                x-kubernetes-list-type: map
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true

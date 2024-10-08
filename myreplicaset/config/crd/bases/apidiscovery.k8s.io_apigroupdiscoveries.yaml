@@ -1,0 +1,432 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: apigroupdiscoveries.apidiscovery.k8s.io
+spec:
+  group: apidiscovery.k8s.io
+  names:
+    kind: APIGroupDiscovery
+    listKind: APIGroupDiscoveryList
+    plural: apigroupdiscoveries
+    singular: apigroupdiscovery
+  scope: Namespaced
+  versions:
+  - name: v2
+    schema:
+      openAPIV3Schema:
+        description: |-
+          APIGroupDiscovery holds information about which resources are being served for all version of the API Group.
+          It contains a list of APIVersionDiscovery that holds a list of APIResourceDiscovery types served for a version.
+          Versions are in descending order of preference, with the first version being the preferred entry.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          versions:
+            description: |-
+              versions are the versions supported in this group. They are sorted in descending order of preference,
+              with the preferred version being the first entry.
+            items:
+              description: APIVersionDiscovery holds a list of APIResourceDiscovery
+                types that are served for a particular version within an API Group.
+              properties:
+                freshness:
+                  description: |-
+                    freshness marks whether a group version's discovery document is up to date.
+                    "Current" indicates the discovery document was recently
+                    refreshed. "Stale" indicates the discovery document could not
+                    be retrieved and the returned discovery document may be
+                    significantly out of date. Clients that require the latest
+                    version of the discovery information be retrieved before
+                    performing an operation should not use the aggregated document
+                  type: string
+                resources:
+                  description: resources is a list of APIResourceDiscovery objects
+                    for the corresponding group version.
+                  items:
+                    description: APIResourceDiscovery provides information about an
+                      API resource for discovery.
+                    properties:
+                      categories:
+                        description: |-
+                          categories is a list of the grouped resources this resource belongs to (e.g. 'all').
+                          Clients may use this to simplify acting on multiple resource types at once.
+                        items:
+                          type: string
+                        type: array
+                        x-kubernetes-list-type: set
+                      resource:
+                        description: |-
+                          resource is the plural name of the resource.  This is used in the URL path and is the unique identifier
+                          for this resource across all versions in the API group.
+                          Resources with non-empty groups are located at /apis/<APIGroupDiscovery.objectMeta.name>/<APIVersionDiscovery.version>/<APIResourceDiscovery.Resource>
+                          Resources with empty groups are located at /api/v1/<APIResourceDiscovery.Resource>
+                        type: string
+                      responseKind:
+                        description: |-
+                          responseKind describes the group, version, and kind of the serialization schema for the object type this endpoint typically returns.
+                          APIs may return other objects types at their discretion, such as error conditions, requests for alternate representations, or other operation specific behavior.
+                          This value will be null or empty if an APIService reports subresources but supports no operations on the parent resource
+                        properties:
+                          group:
+                            type: string
+                          kind:
+                            type: string
+                          version:
+                            type: string
+                        required:
+                        - group
+                        - kind
+                        - version
+                        type: object
+                      scope:
+                        description: scope indicates the scope of a resource, either
+                          Cluster or Namespaced
+                        type: string
+                      shortNames:
+                        description: shortNames is a list of suggested short names
+                          of the resource.
+                        items:
+                          type: string
+                        type: array
+                        x-kubernetes-list-type: set
+                      singularResource:
+                        description: |-
+                          singularResource is the singular name of the resource.  This allows clients to handle plural and singular opaquely.
+                          For many clients the singular form of the resource will be more understandable to users reading messages and should be used when integrating the name of the resource into a sentence.
+                          The command line tool kubectl, for example, allows use of the singular resource name in place of plurals.
+                          The singular form of a resource should always be an optional element - when in doubt use the canonical resource name.
+                        type: string
+                      subresources:
+                        description: subresources is a list of subresources provided
+                          by this resource. Subresources are located at /apis/<APIGroupDiscovery.objectMeta.name>/<APIVersionDiscovery.version>/<APIResourceDiscovery.Resource>/name-of-instance/<APIResourceDiscovery.subresources[i].subresource>
+                        items:
+                          description: APISubresourceDiscovery provides information
+                            about an API subresource for discovery.
+                          properties:
+                            acceptedTypes:
+                              description: |-
+                                acceptedTypes describes the kinds that this endpoint accepts.
+                                Subresources may accept the standard content types or define
+                                custom negotiation schemes. The list may not be exhaustive for
+                                all operations.
+                              items:
+                                description: |-
+                                  GroupVersionKind unambiguously identifies a kind.  It doesn't anonymously include GroupVersion
+                                  to avoid automatic coercion.  It doesn't use a GroupVersion to avoid custom marshalling
+                                properties:
+                                  group:
+                                    type: string
+                                  kind:
+                                    type: string
+                                  version:
+                                    type: string
+                                required:
+                                - group
+                                - kind
+                                - version
+                                type: object
+                              type: array
+                              x-kubernetes-list-map-keys:
+                              - group
+                              - version
+                              - kind
+                              x-kubernetes-list-type: map
+                            responseKind:
+                              description: |-
+                                responseKind describes the group, version, and kind of the serialization schema for the object type this endpoint typically returns.
+                                Some subresources do not return normal resources, these will have null or empty return types.
+                              properties:
+                                group:
+                                  type: string
+                                kind:
+                                  type: string
+                                version:
+                                  type: string
+                              required:
+                              - group
+                              - kind
+                              - version
+                              type: object
+                            subresource:
+                              description: |-
+                                subresource is the name of the subresource.  This is used in the URL path and is the unique identifier
+                                for this resource across all versions.
+                              type: string
+                            verbs:
+                              description: |-
+                                verbs is a list of supported API operation types (this includes
+                                but is not limited to get, list, watch, create, update, patch,
+                                delete, deletecollection, and proxy). Subresources may define
+                                custom verbs outside the standard Kubernetes verb set. Clients
+                                should expect the behavior of standard verbs to align with
+                                Kubernetes interaction conventions.
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: set
+                          required:
+                          - subresource
+                          - verbs
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - subresource
+                        x-kubernetes-list-type: map
+                      verbs:
+                        description: |-
+                          verbs is a list of supported API operation types (this includes
+                          but is not limited to get, list, watch, create, update, patch,
+                          delete, deletecollection, and proxy).
+                        items:
+                          type: string
+                        type: array
+                        x-kubernetes-list-type: set
+                    required:
+                    - resource
+                    - scope
+                    - singularResource
+                    - verbs
+                    type: object
+                  type: array
+                  x-kubernetes-list-map-keys:
+                  - resource
+                  x-kubernetes-list-type: map
+                version:
+                  description: version is the name of the version within a group version.
+                  type: string
+              required:
+              - version
+              type: object
+            type: array
+            x-kubernetes-list-map-keys:
+            - version
+            x-kubernetes-list-type: map
+        type: object
+    served: true
+    storage: false
+  - name: v2beta1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          APIGroupDiscovery holds information about which resources are being served for all version of the API Group.
+          It contains a list of APIVersionDiscovery that holds a list of APIResourceDiscovery types served for a version.
+          Versions are in descending order of preference, with the first version being the preferred entry.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          versions:
+            description: |-
+              versions are the versions supported in this group. They are sorted in descending order of preference,
+              with the preferred version being the first entry.
+            items:
+              description: APIVersionDiscovery holds a list of APIResourceDiscovery
+                types that are served for a particular version within an API Group.
+              properties:
+                freshness:
+                  description: |-
+                    freshness marks whether a group version's discovery document is up to date.
+                    "Current" indicates the discovery document was recently
+                    refreshed. "Stale" indicates the discovery document could not
+                    be retrieved and the returned discovery document may be
+                    significantly out of date. Clients that require the latest
+                    version of the discovery information be retrieved before
+                    performing an operation should not use the aggregated document
+                  type: string
+                resources:
+                  description: resources is a list of APIResourceDiscovery objects
+                    for the corresponding group version.
+                  items:
+                    description: APIResourceDiscovery provides information about an
+                      API resource for discovery.
+                    properties:
+                      categories:
+                        description: |-
+                          categories is a list of the grouped resources this resource belongs to (e.g. 'all').
+                          Clients may use this to simplify acting on multiple resource types at once.
+                        items:
+                          type: string
+                        type: array
+                        x-kubernetes-list-type: set
+                      resource:
+                        description: |-
+                          resource is the plural name of the resource.  This is used in the URL path and is the unique identifier
+                          for this resource across all versions in the API group.
+                          Resources with non-empty groups are located at /apis/<APIGroupDiscovery.objectMeta.name>/<APIVersionDiscovery.version>/<APIResourceDiscovery.Resource>
+                          Resources with empty groups are located at /api/v1/<APIResourceDiscovery.Resource>
+                        type: string
+                      responseKind:
+                        description: |-
+                          responseKind describes the group, version, and kind of the serialization schema for the object type this endpoint typically returns.
+                          APIs may return other objects types at their discretion, such as error conditions, requests for alternate representations, or other operation specific behavior.
+                          This value will be null or empty if an APIService reports subresources but supports no operations on the parent resource
+                        properties:
+                          group:
+                            type: string
+                          kind:
+                            type: string
+                          version:
+                            type: string
+                        required:
+                        - group
+                        - kind
+                        - version
+                        type: object
+                      scope:
+                        description: scope indicates the scope of a resource, either
+                          Cluster or Namespaced
+                        type: string
+                      shortNames:
+                        description: shortNames is a list of suggested short names
+                          of the resource.
+                        items:
+                          type: string
+                        type: array
+                        x-kubernetes-list-type: set
+                      singularResource:
+                        description: |-
+                          singularResource is the singular name of the resource.  This allows clients to handle plural and singular opaquely.
+                          For many clients the singular form of the resource will be more understandable to users reading messages and should be used when integrating the name of the resource into a sentence.
+                          The command line tool kubectl, for example, allows use of the singular resource name in place of plurals.
+                          The singular form of a resource should always be an optional element - when in doubt use the canonical resource name.
+                        type: string
+                      subresources:
+                        description: subresources is a list of subresources provided
+                          by this resource. Subresources are located at /apis/<APIGroupDiscovery.objectMeta.name>/<APIVersionDiscovery.version>/<APIResourceDiscovery.Resource>/name-of-instance/<APIResourceDiscovery.subresources[i].subresource>
+                        items:
+                          description: APISubresourceDiscovery provides information
+                            about an API subresource for discovery.
+                          properties:
+                            acceptedTypes:
+                              description: |-
+                                acceptedTypes describes the kinds that this endpoint accepts.
+                                Subresources may accept the standard content types or define
+                                custom negotiation schemes. The list may not be exhaustive for
+                                all operations.
+                              items:
+                                description: |-
+                                  GroupVersionKind unambiguously identifies a kind.  It doesn't anonymously include GroupVersion
+                                  to avoid automatic coercion.  It doesn't use a GroupVersion to avoid custom marshalling
+                                properties:
+                                  group:
+                                    type: string
+                                  kind:
+                                    type: string
+                                  version:
+                                    type: string
+                                required:
+                                - group
+                                - kind
+                                - version
+                                type: object
+                              type: array
+                              x-kubernetes-list-map-keys:
+                              - group
+                              - version
+                              - kind
+                              x-kubernetes-list-type: map
+                            responseKind:
+                              description: |-
+                                responseKind describes the group, version, and kind of the serialization schema for the object type this endpoint typically returns.
+                                Some subresources do not return normal resources, these will have null or empty return types.
+                              properties:
+                                group:
+                                  type: string
+                                kind:
+                                  type: string
+                                version:
+                                  type: string
+                              required:
+                              - group
+                              - kind
+                              - version
+                              type: object
+                            subresource:
+                              description: |-
+                                subresource is the name of the subresource.  This is used in the URL path and is the unique identifier
+                                for this resource across all versions.
+                              type: string
+                            verbs:
+                              description: |-
+                                verbs is a list of supported API operation types (this includes
+                                but is not limited to get, list, watch, create, update, patch,
+                                delete, deletecollection, and proxy). Subresources may define
+                                custom verbs outside the standard Kubernetes verb set. Clients
+                                should expect the behavior of standard verbs to align with
+                                Kubernetes interaction conventions.
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: set
+                          required:
+                          - subresource
+                          - verbs
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - subresource
+                        x-kubernetes-list-type: map
+                      verbs:
+                        description: |-
+                          verbs is a list of supported API operation types (this includes
+                          but is not limited to get, list, watch, create, update, patch,
+                          delete, deletecollection, and proxy).
+                        items:
+                          type: string
+                        type: array
+                        x-kubernetes-list-type: set
+                    required:
+                    - resource
+                    - scope
+                    - singularResource
+                    - verbs
+                    type: object
+                  type: array
+                  x-kubernetes-list-map-keys:
+                  - resource
+                  x-kubernetes-list-type: map
+                version:
+                  description: version is the name of the version within a group version.
+                  type: string
+              required:
+              - version
+              type: object
+            type: array
+            x-kubernetes-list-map-keys:
+            - version
+            x-kubernetes-list-type: map
+        type: object
+    served: true
+    storage: false

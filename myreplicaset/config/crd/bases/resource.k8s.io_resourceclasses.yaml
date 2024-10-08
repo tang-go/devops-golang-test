@@ -1,0 +1,187 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: resourceclasses.resource.k8s.io
+spec:
+  group: resource.k8s.io
+  names:
+    kind: ResourceClass
+    listKind: ResourceClassList
+    plural: resourceclasses
+    singular: resourceclass
+  scope: Namespaced
+  versions:
+  - name: v1alpha2
+    schema:
+      openAPIV3Schema:
+        description: |-
+          ResourceClass is used by administrators to influence how resources
+          are allocated.
+
+
+          This is an alpha type and requires enabling the DynamicResourceAllocation
+          feature gate.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          driverName:
+            description: |-
+              DriverName defines the name of the dynamic resource driver that is
+              used for allocation of a ResourceClaim that uses this class.
+
+
+              Resource drivers have a unique name in forward domain order
+              (acme.example.com).
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          parametersRef:
+            description: |-
+              ParametersRef references an arbitrary separate object that may hold
+              parameters that will be used by the driver when allocating a
+              resource that uses this class. A dynamic resource driver can
+              distinguish between parameters stored here and and those stored in
+              ResourceClaimSpec.
+            properties:
+              apiGroup:
+                description: |-
+                  APIGroup is the group for the resource being referenced. It is
+                  empty for the core API. This matches the group in the APIVersion
+                  that is used when creating the resources.
+                type: string
+              kind:
+                description: |-
+                  Kind is the type of resource being referenced. This is the same
+                  value as in the parameter object's metadata.
+                type: string
+              name:
+                description: Name is the name of resource being referenced.
+                type: string
+              namespace:
+                description: |-
+                  Namespace that contains the referenced resource. Must be empty
+                  for cluster-scoped resources and non-empty for namespaced
+                  resources.
+                type: string
+            required:
+            - kind
+            - name
+            type: object
+          structuredParameters:
+            description: |-
+              If and only if allocation of claims using this class is handled
+              via structured parameters, then StructuredParameters must be set to true.
+            type: boolean
+          suitableNodes:
+            description: |-
+              Only nodes matching the selector will be considered by the scheduler
+              when trying to find a Node that fits a Pod when that Pod uses
+              a ResourceClaim that has not been allocated yet.
+
+
+              Setting this field is optional. If null, all nodes are candidates.
+            properties:
+              nodeSelectorTerms:
+                description: Required. A list of node selector terms. The terms are
+                  ORed.
+                items:
+                  description: |-
+                    A null or empty node selector term matches no objects. The requirements of
+                    them are ANDed.
+                    The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.
+                  properties:
+                    matchExpressions:
+                      description: A list of node selector requirements by node's
+                        labels.
+                      items:
+                        description: |-
+                          A node selector requirement is a selector that contains values, a key, and an operator
+                          that relates the key and values.
+                        properties:
+                          key:
+                            description: The label key that the selector applies to.
+                            type: string
+                          operator:
+                            description: |-
+                              Represents a key's relationship to a set of values.
+                              Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.
+                            type: string
+                          values:
+                            description: |-
+                              An array of string values. If the operator is In or NotIn,
+                              the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                              the values array must be empty. If the operator is Gt or Lt, the values
+                              array must have a single element, which will be interpreted as an integer.
+                              This array is replaced during a strategic merge patch.
+                            items:
+                              type: string
+                            type: array
+                            x-kubernetes-list-type: atomic
+                        required:
+                        - key
+                        - operator
+                        type: object
+                      type: array
+                      x-kubernetes-list-type: atomic
+                    matchFields:
+                      description: A list of node selector requirements by node's
+                        fields.
+                      items:
+                        description: |-
+                          A node selector requirement is a selector that contains values, a key, and an operator
+                          that relates the key and values.
+                        properties:
+                          key:
+                            description: The label key that the selector applies to.
+                            type: string
+                          operator:
+                            description: |-
+                              Represents a key's relationship to a set of values.
+                              Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.
+                            type: string
+                          values:
+                            description: |-
+                              An array of string values. If the operator is In or NotIn,
+                              the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                              the values array must be empty. If the operator is Gt or Lt, the values
+                              array must have a single element, which will be interpreted as an integer.
+                              This array is replaced during a strategic merge patch.
+                            items:
+                              type: string
+                            type: array
+                            x-kubernetes-list-type: atomic
+                        required:
+                        - key
+                        - operator
+                        type: object
+                      type: array
+                      x-kubernetes-list-type: atomic
+                  type: object
+                  x-kubernetes-map-type: atomic
+                type: array
+                x-kubernetes-list-type: atomic
+            required:
+            - nodeSelectorTerms
+            type: object
+            x-kubernetes-map-type: atomic
+        required:
+        - driverName
+        type: object
+    served: true
+    storage: true

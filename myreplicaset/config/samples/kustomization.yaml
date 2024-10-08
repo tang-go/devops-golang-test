@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- myrs_v1_myreplicaset.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

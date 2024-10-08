@@ -1,0 +1,34 @@
+apiVersion: myrs.github.com/v1
+kind: MyReplicaSet
+metadata:
+  labels:
+    app.kubernetes.io/name: myreplicaset
+    app.kubernetes.io/managed-by: kustomize
+    app: myreplicaset-sample
+  name: myreplicaset-sample
+spec:
+  # TODO(user): Add fields here
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myreplicaset-sample
+  template:
+    # metadata:
+    #   labels:
+    #     app: myreplicaset-sample
+    spec:
+      containers:
+      - image: release.daocloud.io/virtnest/virtnest-ui:v0.11.0
+        imagePullPolicy: IfNotPresent
+        name: virtnest-ui
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 1m
+            memory: 16Mi

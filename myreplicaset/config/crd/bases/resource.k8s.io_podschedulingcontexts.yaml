@@ -1,0 +1,109 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: podschedulingcontexts.resource.k8s.io
+spec:
+  group: resource.k8s.io
+  names:
+    kind: PodSchedulingContext
+    listKind: PodSchedulingContextList
+    plural: podschedulingcontexts
+    singular: podschedulingcontext
+  scope: Namespaced
+  versions:
+  - name: v1alpha2
+    schema:
+      openAPIV3Schema:
+        description: |-
+          PodSchedulingContext objects hold information that is needed to schedule
+          a Pod with ResourceClaims that use "WaitForFirstConsumer" allocation
+          mode.
+
+
+          This is an alpha type and requires enabling the DynamicResourceAllocation
+          feature gate.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec describes where resources for the Pod are needed.
+            properties:
+              potentialNodes:
+                description: |-
+                  PotentialNodes lists nodes where the Pod might be able to run.
+
+
+                  The size of this field is limited to 128. This is large enough for
+                  many clusters. Larger clusters may need more attempts to find a node
+                  that suits all pending resources. This may get increased in the
+                  future, but not reduced.
+                items:
+                  type: string
+                type: array
+                x-kubernetes-list-type: atomic
+              selectedNode:
+                description: |-
+                  SelectedNode is the node for which allocation of ResourceClaims that
+                  are referenced by the Pod and that use "WaitForFirstConsumer"
+                  allocation is to be attempted.
+                type: string
+            type: object
+          status:
+            description: Status describes where resources for the Pod can be allocated.
+            properties:
+              resourceClaims:
+                description: |-
+                  ResourceClaims describes resource availability for each
+                  pod.spec.resourceClaim entry where the corresponding ResourceClaim
+                  uses "WaitForFirstConsumer" allocation mode.
+                items:
+                  description: |-
+                    ResourceClaimSchedulingStatus contains information about one particular
+                    ResourceClaim with "WaitForFirstConsumer" allocation mode.
+                  properties:
+                    name:
+                      description: Name matches the pod.spec.resourceClaims[*].Name
+                        field.
+                      type: string
+                    unsuitableNodes:
+                      description: |-
+                        UnsuitableNodes lists nodes that the ResourceClaim cannot be
+                        allocated for.
+
+
+                        The size of this field is limited to 128, the same as for
+                        PodSchedulingSpec.PotentialNodes. This may get increased in the
+                        future, but not reduced.
+                      items:
+                        type: string
+                      type: array
+                      x-kubernetes-list-type: atomic
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - name
+                x-kubernetes-list-type: map
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
