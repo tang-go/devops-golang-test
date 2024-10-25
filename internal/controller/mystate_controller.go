@@ -103,12 +103,14 @@ func (r *MyStateReconciler) reconcile(ctx context.Context, myState myappv1.MySta
 		if err = r.Status().Update(ctx, &myState); err != nil {
 			return errorReturn(err)
 		}
+		return retryReturn()
 	}
 	if myState.Status.Replicas != len(childPods) {
 		myState.Status.Replicas = len(childPods)
 		if err = r.Status().Update(ctx, &myState); err != nil {
 			return errorReturn(err)
 		}
+		return retryReturn()
 	}
 
 	// make sure there are enough pods
