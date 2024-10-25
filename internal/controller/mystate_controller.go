@@ -20,6 +20,7 @@ import (
 	"context"
 	myappv1 "hzy.com/mystate/api/v1"
 	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,14 +35,14 @@ type MyStateReconciler struct {
 }
 
 var (
-	jobOwnerKey = ".metadata.controller"
+	podOwnerKey = ".metadata.controller"
 )
 
 // +kubebuilder:rbac:groups=myapp.hzy.com,resources=mystates,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=myapp.hzy.com,resources=mystates/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=myapp.hzy.com,resources=mystates/finalizers,verbs=update
-// +kubebuilder:rbac:groups="",resources=pod,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups="",resources=pod/status,verbs=get
+// +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=pods/status,verbs=get
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -57,21 +58,20 @@ func (r *MyStateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	var myState myappv1.MyState
 	if err := r.Get(ctx, req.NamespacedName, &myState); err != nil {
 		log.Error(err, "unable to fetch MyState")
-		//忽略掉 not-found 错误，它们不能通过重新排队修复（要等待新的通知）
-		//在删除一个不存在的对象时，可能会报这个错误。
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	if r.isDeleting(myState) {
 		if r.hasFinalizer(myState) {
-			log.Info("start to delete myState", "myState", myState.Name)
+			log.Info("start to delete myState")
 			return r.delete(ctx, myState)
 		} else {
 			return emptyReturn()
 		}
 	} else if !r.hasFinalizer(myState) {
-		log.Info("add finalizer to myState %s", "myState", myState.Name)
+		log.Info("adding finalizer to myState")
 		r.addFinalizer(&myState)
+		log.Info("added finalizer", "finalizers", myState.Finalizers)
 		if err := r.Update(ctx, &myState); err != nil {
 			return errorReturn(err)
 		} else {
@@ -98,13 +98,25 @@ func (r *MyStateReconciler) reconcile(ctx context.Context, myState myappv1.MySta
 	}
 
 	// all exist pods are ready
-	myState.Status.ReadyReplicas = myState.Status.Replicas
-	if err = r.Status().Update(ctx, &myState); err != nil {
-		return errorReturn(err)
+	if myState.Status.ReadyReplicas != len(childPods) {
+		myState.Status.ReadyReplicas = len(childPods)
+		if err = r.Status().Update(ctx, &myState); err != nil {
+			return errorReturn(err)
+		}
+	}
+	if myState.Status.Replicas != len(childPods) {
+		myState.Status.Replicas = len(childPods)
+		if err = r.Status().Update(ctx, &myState); err != nil {
+			return errorReturn(err)
+		}
 	}
 
 	// make sure there are enough pods
-	if missingPod, exist := getNextMissingPod(myState, childPods); exist {
+	missingPod, exist, err := r.getNextMissingPod(myState, childPods)
+	if err != nil {
+		return errorReturn(err)
+	}
+	if exist {
 		log.Info("creating pod", "pod", missingPod.Name)
 		myState.Status.Replicas = len(childPods) + 1
 		if err = r.Status().Update(ctx, &myState); err != nil {
@@ -127,7 +139,11 @@ func (r *MyStateReconciler) reconcile(ctx context.Context, myState myappv1.MySta
 
 func (r *MyStateReconciler) orderedChildPods(ctx context.Context, myState myappv1.MyState) ([]v1.Pod, error) {
 	var childPods v1.PodList
-	if err := r.List(ctx, &childPods, client.InNamespace(myState.Namespace), client.MatchingFields{jobOwnerKey: myState.Name}); err != nil {
+	ns := myState.Namespace
+	if ns == "" {
+		ns = "default"
+	}
+	if err := r.List(ctx, &childPods, client.InNamespace(myState.Namespace), client.MatchingFields{podOwnerKey: myState.Name}); err != nil {
 		return nil, err
 	}
 	sort.Slice(childPods.Items, func(i, j int) bool {
@@ -138,6 +154,20 @@ func (r *MyStateReconciler) orderedChildPods(ctx context.Context, myState myappv
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *MyStateReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.Pod{}, podOwnerKey, func(rawObj client.Object) []string {
+		pod := rawObj.(*v1.Pod)
+		owner := metav1.GetControllerOf(pod)
+		if owner == nil {
+			return nil
+		}
+		if owner.APIVersion != myappv1.GroupVersion.String() ||
+			owner.Kind != "MyState" {
+			return nil
+		}
+		return []string{owner.Name}
+	}); err != nil {
+		return err
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&myappv1.MyState{}).
 		Named("mystate").

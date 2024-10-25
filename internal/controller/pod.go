@@ -14,7 +14,7 @@ import (
 
 func (r *MyStateReconciler) needWaitForPod(pods []v1.Pod) (*v1.Pod, bool) {
 	for _, pod := range pods {
-		if !isPodReady(pod) {
+		if !isPodReady(pod) || isPodDeleting(pod) {
 			return &pod, true
 		}
 	}
@@ -28,6 +28,10 @@ func isPodReady(pod v1.Pod) bool {
 		}
 	}
 	return false
+}
+
+func isPodDeleting(pod v1.Pod) bool {
+	return !pod.GetDeletionTimestamp().IsZero()
 }
 
 func (r *MyStateReconciler) createPod(ctx context.Context, pod v1.Pod) (ctrl.Result, error) {
@@ -54,7 +58,7 @@ func (r *MyStateReconciler) updatePod(ctx context.Context, pod v1.Pod) (ctrl.Res
 	return reconcile.Result{}, nil
 }
 
-func getNextMissingPod(myState myappv1.MyState, pods []v1.Pod) (v1.Pod, bool) {
+func (r *MyStateReconciler) getNextMissingPod(myState myappv1.MyState, pods []v1.Pod) (v1.Pod, bool, error) {
 	podMap := make(map[string]v1.Pod)
 	for _, pod := range pods {
 		podMap[pod.Name] = pod
@@ -62,10 +66,14 @@ func getNextMissingPod(myState myappv1.MyState, pods []v1.Pod) (v1.Pod, bool) {
 
 	for i := myState.Spec.Ordinals.Start; i < myState.Spec.Ordinals.Start+myState.Spec.Replicas; i++ {
 		if _, exist := podMap[podNameFor(myState, i)]; !exist {
-			return generatePod(myState, i), true
+			pod, err := r.generatePod(myState, i)
+			if err != nil {
+				return v1.Pod{}, false, err
+			}
+			return pod, true, nil
 		}
 	}
-	return v1.Pod{}, false
+	return v1.Pod{}, false, nil
 }
 
 func getNeedRemovePod(myState myappv1.MyState, pods []v1.Pod) (v1.Pod, bool) {
@@ -83,7 +91,7 @@ func podNameFor(myState myappv1.MyState, index int) string {
 	return fmt.Sprintf("%s-%d", myState.Name, index)
 }
 
-func generatePod(myState myappv1.MyState, index int) v1.Pod {
+func (r *MyStateReconciler) generatePod(myState myappv1.MyState, index int) (v1.Pod, error) {
 	// create pod object
 	pod := v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -109,7 +117,12 @@ func generatePod(myState myappv1.MyState, index int) v1.Pod {
 	pod.Labels[MyStateGenerationLabelName] = fmt.Sprintf("%d", myState.GetGeneration())
 
 	addStorageToPod(myState, &pod)
-	return pod
+
+	err := ctrl.SetControllerReference(&myState, &pod, r.Scheme)
+	if err != nil {
+		return v1.Pod{}, err
+	}
+	return pod, nil
 }
 
 func addStorageToPod(myState myappv1.MyState, pod *v1.Pod) {

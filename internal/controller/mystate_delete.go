@@ -29,7 +29,7 @@ func (r *MyStateReconciler) delete(ctx context.Context, state myappv1.MyState) (
 	}
 
 	if len(childs) == 0 {
-		log.Info("all child of MyState is deleted", "MyState", state.Name)
+		log.Info("all child of MyState is deleted")
 		controllerutil.RemoveFinalizer(&state, MyStateFinalizerName)
 		if err := r.Update(ctx, &state); err != nil {
 			return errorReturn(err)
@@ -40,10 +40,10 @@ func (r *MyStateReconciler) delete(ctx context.Context, state myappv1.MyState) (
 
 	lastChild := childs[len(childs)-1]
 	if !lastChild.DeletionTimestamp.IsZero() {
-		log.Info("child of MyState is deleting", "MyState", state.Name, "pod", lastChild.Name)
+		log.Info("child of MyState is deleting", "pod", lastChild.Name)
 		return retryReturn()
 	} else {
-		log.Info("start to delete child of MyState", "MyState", state.Name, "pod", lastChild.Name)
+		log.Info("start to delete child of MyState", "pod", lastChild.Name)
 		return r.removePod(ctx, lastChild)
 	}
 

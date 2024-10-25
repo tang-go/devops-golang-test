@@ -228,7 +228,7 @@ helm: manifests kustomize helmify
 
 .PHONY: package
 package: $(PACKAGE) manifests helm build
-	cp bin/manager $(PACKAGE)/
+	cd bin && tar -czvf $(PACKAGE)/manager.tar.gz manager && cd ..
 	cp Dockerfile_simple $(PACKAGE)/Dockerfile
 	cp -r mystate-chart $(PACKAGE)/
 	cp scripts/install.sh $(PACKAGE)

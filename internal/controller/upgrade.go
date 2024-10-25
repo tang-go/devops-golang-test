@@ -18,7 +18,6 @@ func (r *MyStateReconciler) upgrade(ctx context.Context, myState myappv1.MyState
 
 	targetGeneration := fmt.Sprintf("%d", myState.Generation)
 	log.Info("upgrading MyState generation",
-		"MyState", myState.Name,
 		"current", myState.Status.CurrentGeneration,
 		"target", targetGeneration)
 	for i, pod := range pods {
@@ -32,7 +31,11 @@ func (r *MyStateReconciler) upgrade(ctx context.Context, myState myappv1.MyState
 				}
 			}
 		} else {
-			if _, err := r.updatePod(ctx, generatePod(myState, i)); err != nil {
+			pod, err := r.generatePod(myState, i)
+			if err != nil {
+				return errorReturn(err)
+			}
+			if _, err = r.updatePod(ctx, pod); err != nil {
 				return errorReturn(err)
 			}
 		}

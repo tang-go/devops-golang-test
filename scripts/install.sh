@@ -19,6 +19,6 @@ done
 repository=dayeguilaiye/my-state
 
 sudo docker build -t $repository:latest .
-# docker push $repository:latest
+sudo docker push $repository:latest
 
 KUBECONFIG=/etc/rancher/k3s/k3s.yaml /usr/local/bin/helm upgrade --install my-state-release ./mystate-chart --set controllerManager.manager.image.repository=$repository --set controllerManager.manager.imagePullPolicy=Never
