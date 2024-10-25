@@ -19,6 +19,7 @@ package v1
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -96,7 +97,7 @@ func (v *MyStateCustomValidator) ValidateCreate(ctx context.Context, obj runtime
 
 	// TODO(user): fill in your validation logic upon object creation.
 
-	return nil, nil
+	return nil, validateMystate(mystate)
 }
 
 // ValidateUpdate implements webhook.CustomValidator so a webhook will be registered for the type MyState.
@@ -109,7 +110,7 @@ func (v *MyStateCustomValidator) ValidateUpdate(ctx context.Context, oldObj, new
 
 	// TODO(user): fill in your validation logic upon object update.
 
-	return nil, nil
+	return nil, validateMystate(mystate)
 }
 
 // ValidateDelete implements webhook.CustomValidator so a webhook will be registered for the type MyState.
@@ -123,4 +124,12 @@ func (v *MyStateCustomValidator) ValidateDelete(ctx context.Context, obj runtime
 	// TODO(user): fill in your validation logic upon object deletion.
 
 	return nil, nil
+}
+
+// todo more validate
+func validateMystate(myState *myappv1.MyState) error {
+	if myState.Spec.Replicas < 0 {
+		return errors.Errorf("mystate.Spec.Replicas must be >= 0, got %d", myState.Spec.Replicas)
+	}
+	return nil
 }

@@ -82,6 +82,12 @@ var _ = Describe("MyState Webhook", func() {
 		//     obj.SomeRequiredField = "updated_value"
 		//     Expect(validator.ValidateUpdate(ctx, oldObj, obj)).To(BeNil())
 		// })
+
+		It("Should deny creation if replicas less than 0", func() {
+			By("simulating an mystate replicas equals -1")
+			obj.Spec.Replicas = -1
+			Expect(validator.ValidateCreate(ctx, obj)).Error().To(HaveOccurred())
+		})
 	})
 
 })
