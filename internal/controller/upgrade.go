@@ -31,13 +31,8 @@ func (r *MyStateReconciler) upgrade(ctx context.Context, myState myappv1.MyState
 				}
 			}
 		} else {
-			pod, err := r.generatePod(myState, i)
-			if err != nil {
-				return errorReturn(err)
-			}
-			if _, err = r.updatePod(ctx, pod); err != nil {
-				return errorReturn(err)
-			}
+			// most properties of pod is not changeable, so delete and recreate
+			return r.removePod(ctx, pod)
 		}
 	}
 

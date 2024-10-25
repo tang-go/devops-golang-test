@@ -170,6 +170,7 @@ func (r *MyStateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&myappv1.MyState{}).
+		Owns(&v1.Pod{}).
 		Named("mystate").
 		Complete(r)
 }
