@@ -8421,7 +8421,7 @@ spec:
                   this myState
                 type: integer
               currentRevision:
-                description: CurrentRevision is the revision of spec which is not
+                description: CurrentGeneration is the revision of spec which is not
                   updated yet
                 type: string
               readyReplicas:
@@ -8430,10 +8430,6 @@ spec:
               replicas:
                 description: Replicas is all pods created by this myState
                 type: integer
-              updateRevision:
-                description: UpdateRevision is the target revision of spec which is
-                  trying to update to
-                type: string
               updatedReplicas:
                 description: UpdatedReplicas is pods with updateVersion created by
                   this myState

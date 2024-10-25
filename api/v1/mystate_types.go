@@ -56,11 +56,8 @@ type MyOrdinals struct {
 
 // MyStateStatus defines the observed state of MyState.
 type MyStateStatus struct {
-	// CurrentRevision is the revision of spec which is not updated yet
-	CurrentRevision string `json:"currentRevision,omitempty"`
-
-	// UpdateRevision is the target revision of spec which is trying to update to
-	UpdateRevision string `json:"updateRevision,omitempty"`
+	// CurrentGeneration is the revision of spec which is not updated yet
+	CurrentGeneration string `json:"currentRevision,omitempty"`
 
 	// Replicas is all pods created by this myState
 	Replicas int `json:"replicas"`
