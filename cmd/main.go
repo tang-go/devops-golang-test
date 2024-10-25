@@ -37,6 +37,7 @@ import (
 
 	myappv1 "hzy.com/mystate/api/v1"
 	"hzy.com/mystate/internal/controller"
+	webhookmyappv1 "hzy.com/mystate/internal/webhook/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -150,6 +151,13 @@ func main() {
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "MyState")
 		os.Exit(1)
+	}
+	// nolint:goconst
+	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+		if err = webhookmyappv1.SetupMyStateWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "MyState")
+			os.Exit(1)
+		}
 	}
 	// +kubebuilder:scaffold:builder
 
