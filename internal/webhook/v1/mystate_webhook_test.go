@@ -49,16 +49,14 @@ var _ = Describe("MyState Webhook", func() {
 	})
 
 	Context("When creating MyState under Defaulting Webhook", func() {
-		// TODO (user): Add logic for defaulting webhooks
-		// Example:
-		// It("Should apply defaults when a required field is empty", func() {
-		//     By("simulating a scenario where defaults should be applied")
-		//     obj.SomeFieldWithDefault = ""
-		//     By("calling the Default method to apply defaults")
-		//     defaulter.Default(ctx, obj)
-		//     By("checking that the default values are set")
-		//     Expect(obj.SomeFieldWithDefault).To(Equal("default_value"))
-		// })
+		It("Should apply defaults when a required field is empty", func() {
+			By("simulating a scenario where defaults should be applied")
+			obj.Spec.Replicas = 1
+			By("calling the Default method to apply defaults")
+			defaulter.Default(ctx, obj)
+			By("checking that the default values are set")
+			Expect(obj.Spec.Replicas).To(Equal(1))
+		})
 	})
 
 	Context("When creating or updating MyState under Validating Webhook", func() {
@@ -87,6 +85,24 @@ var _ = Describe("MyState Webhook", func() {
 			By("simulating an mystate replicas equals -1")
 			obj.Spec.Replicas = -1
 			Expect(validator.ValidateCreate(ctx, obj)).Error().To(HaveOccurred())
+		})
+
+		It("Should admit creation if all required fields are present", func() {
+			By("simulating an invalid creation scenario")
+			obj.Spec.Replicas = 1
+			Expect(validator.ValidateCreate(ctx, obj)).To(BeNil())
+		})
+
+		It("Should validate updates correctly", func() {
+			By("simulating a valid update scenario")
+			oldObj.Spec.Replicas = 2
+			Expect(validator.ValidateUpdate(ctx, oldObj, obj)).To(BeNil())
+		})
+
+		It("Should validate delete correctly", func() {
+			By("simulating a valid update scenario")
+			obj.Spec.Replicas = 2
+			Expect(validator.ValidateDelete(ctx, obj)).To(BeNil())
 		})
 	})
 

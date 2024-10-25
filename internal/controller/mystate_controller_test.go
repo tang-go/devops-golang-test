@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	v1 "k8s.io/api/core/v1"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -52,6 +53,27 @@ var _ = Describe("MyState Controller", func() {
 						Namespace: "default",
 					},
 					// TODO(user): Specify other spec details if needed.
+					Spec: myappv1.MyStateSpec{
+						Replicas: 1,
+						Selector: &metav1.LabelSelector{
+							MatchLabels:      nil,
+							MatchExpressions: nil,
+						},
+						Template: v1.PodTemplateSpec{
+							ObjectMeta: metav1.ObjectMeta{},
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Name:  "test-container",
+										Image: "test-image",
+									},
+								},
+							},
+						},
+						VolumeClaimTemplates: nil,
+						ServiceName:          "",
+						Ordinals:             myappv1.MyOrdinals{},
+					},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}

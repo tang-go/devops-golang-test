@@ -35,8 +35,8 @@ type MyStateReconciler struct {
 // +kubebuilder:rbac:groups=myapp.hzy.com,resources=mystates,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=myapp.hzy.com,resources=mystates/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=myapp.hzy.com,resources=mystates/finalizers,verbs=update
-// +kubebuilder:rbac:groups=batch,resources=pod,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=batch,resources=pod/status,verbs=get
+// +kubebuilder:rbac:groups=,resources=pod,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=,resources=pod/status,verbs=get
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

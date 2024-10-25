@@ -4,6 +4,20 @@ kind: ClusterRole
 metadata:
   name: manager-role
 rules:
+- resources:
+  - pod
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- resources:
+  - pod/status
+  verbs:
+  - get
 - apiGroups:
   - myapp.hzy.com
   resources:
