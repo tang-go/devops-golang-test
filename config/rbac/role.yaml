@@ -4,7 +4,9 @@ kind: ClusterRole
 metadata:
   name: manager-role
 rules:
-- resources:
+- apiGroups:
+  - ""
+  resources:
   - pod
   verbs:
   - create
@@ -14,7 +16,9 @@ rules:
   - patch
   - update
   - watch
-- resources:
+- apiGroups:
+  - ""
+  resources:
   - pod/status
   verbs:
   - get

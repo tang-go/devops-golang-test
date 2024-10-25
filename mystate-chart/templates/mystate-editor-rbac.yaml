@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "mystate-chart.fullname" . }}-mystate-editor-role
+  labels:
+  {{- include "mystate-chart.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - myapp.hzy.com
+  resources:
+  - mystates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - myapp.hzy.com
+  resources:
+  - mystates/status
+  verbs:
+  - get

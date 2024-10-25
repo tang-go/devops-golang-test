@@ -33,7 +33,7 @@ type MyStateSpec struct {
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 
 	// Template is the template of pod
-	Template v1.PodTemplateSpec `json:"template"`
+	Template v1.PodTemplateSpec `json:"template,omitempty"`
 
 	// VolumeClaimTemplates is the templates of pvc in pods
 	VolumeClaimTemplates []v1.PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty"`

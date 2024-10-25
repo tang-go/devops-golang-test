@@ -17,7 +17,10 @@ func (r *MyStateReconciler) upgrade(ctx context.Context, myState myappv1.MyState
 	log := log.FromContext(ctx)
 
 	targetGeneration := fmt.Sprintf("%d", myState.Generation)
-	log.Info("upgrading MyState %s, current %s, target %s", myState.Name, myState.Status.CurrentGeneration, targetGeneration)
+	log.Info("upgrading MyState generation",
+		"MyState", myState.Name,
+		"current", myState.Status.CurrentGeneration,
+		"target", targetGeneration)
 	for i, pod := range pods {
 		if pod.Labels[MyStateGenerationLabelName] == targetGeneration {
 			if myState.Status.CurrentReplicas < i {

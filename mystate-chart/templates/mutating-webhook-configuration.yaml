@@ -1,0 +1,29 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "mystate-chart.fullname" . }}-mutating-webhook-configuration
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "mystate-chart.fullname" . }}-serving-cert
+  labels:
+  {{- include "mystate-chart.labels" . | nindent 4 }}
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: '{{ include "mystate-chart.fullname" . }}-webhook-service'
+      namespace: '{{ .Release.Namespace }}'
+      path: /mutate-myapp-hzy-com-v1-mystate
+  failurePolicy: Fail
+  name: mmystate-v1.kb.io
+  rules:
+  - apiGroups:
+    - myapp.hzy.com
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - mystates
+  sideEffects: None

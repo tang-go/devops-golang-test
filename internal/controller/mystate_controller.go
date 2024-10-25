@@ -40,8 +40,8 @@ var (
 // +kubebuilder:rbac:groups=myapp.hzy.com,resources=mystates,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=myapp.hzy.com,resources=mystates/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=myapp.hzy.com,resources=mystates/finalizers,verbs=update
-// +kubebuilder:rbac:groups=,resources=pod,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=,resources=pod/status,verbs=get
+// +kubebuilder:rbac:groups="",resources=pod,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=pod/status,verbs=get
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -64,12 +64,19 @@ func (r *MyStateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	if r.isDeleting(myState) {
 		if r.hasFinalizer(myState) {
+			log.Info("start to delete myState", "myState", myState.Name)
 			return r.delete(ctx, myState)
 		} else {
 			return emptyReturn()
 		}
 	} else if !r.hasFinalizer(myState) {
-		r.addFinalizer(myState)
+		log.Info("add finalizer to myState %s", "myState", myState.Name)
+		r.addFinalizer(&myState)
+		if err := r.Update(ctx, &myState); err != nil {
+			return errorReturn(err)
+		} else {
+			return retryReturn()
+		}
 	}
 
 	return r.reconcile(ctx, myState)
@@ -78,35 +85,55 @@ func (r *MyStateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 func (r *MyStateReconciler) reconcile(ctx context.Context, myState myappv1.MyState) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	var childPods v1.PodList
-	if err := r.List(ctx, &childPods, client.InNamespace(myState.Namespace), client.MatchingFields{jobOwnerKey: myState.Name}); err != nil {
-		log.Error(err, "unable to list child pods")
+	// get all child pods
+	childPods, err := r.orderedChildPods(ctx, myState)
+	if err != nil {
 		return errorReturn(err)
 	}
-	sort.Slice(childPods.Items, func(i, j int) bool {
-		return getIndexOfPod(&childPods.Items[i]) < getIndexOfPod(&childPods.Items[j])
-	})
+	log.Info("got child pods", "nums", len(childPods))
 
-	if waitFor, needWait := r.needWaitForPod(childPods.Items); needWait {
+	if waitFor, needWait := r.needWaitForPod(childPods); needWait {
 		log.Info("waiting for pod to be ready", "pod", waitFor.Name)
 		return retryReturn()
 	}
 
-	if missingPod, exist := getNextMissingPod(myState, childPods.Items); exist {
-		log.Info("creating pod %s", missingPod.Name)
+	// all exist pods are ready
+	myState.Status.ReadyReplicas = myState.Status.Replicas
+	if err = r.Status().Update(ctx, &myState); err != nil {
+		return errorReturn(err)
+	}
+
+	// make sure there are enough pods
+	if missingPod, exist := getNextMissingPod(myState, childPods); exist {
+		log.Info("creating pod", "pod", missingPod.Name)
+		myState.Status.Replicas = len(childPods) + 1
+		if err = r.Status().Update(ctx, &myState); err != nil {
+			return errorReturn(err)
+		}
 		return r.createPod(ctx, missingPod)
 	}
 
-	if needRemovePod, exist := getNeedRemovePod(myState, childPods.Items); exist {
-		log.Info("deleting pod %s", needRemovePod.Name)
+	if needRemovePod, exist := getNeedRemovePod(myState, childPods); exist {
+		log.Info("deleting pod", "pod", needRemovePod.Name)
 		return r.removePod(ctx, needRemovePod)
 	}
 
 	if needUpgrade(myState) {
-		return r.upgrade(ctx, myState, childPods.Items)
+		return r.upgrade(ctx, myState, childPods)
 	}
 
 	return emptyReturn()
+}
+
+func (r *MyStateReconciler) orderedChildPods(ctx context.Context, myState myappv1.MyState) ([]v1.Pod, error) {
+	var childPods v1.PodList
+	if err := r.List(ctx, &childPods, client.InNamespace(myState.Namespace), client.MatchingFields{jobOwnerKey: myState.Name}); err != nil {
+		return nil, err
+	}
+	sort.Slice(childPods.Items, func(i, j int) bool {
+		return getIndexOfPod(&childPods.Items[i]) < getIndexOfPod(&childPods.Items[j])
+	})
+	return childPods.Items, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
