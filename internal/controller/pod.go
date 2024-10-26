@@ -7,7 +7,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"strconv"
 	"strings"
 )
@@ -48,14 +47,6 @@ func (r *MyStateReconciler) removePod(ctx context.Context, pod v1.Pod) (ctrl.Res
 		return errorReturn(err)
 	}
 	return retryReturn()
-}
-
-func (r *MyStateReconciler) updatePod(ctx context.Context, pod v1.Pod) (ctrl.Result, error) {
-	err := r.Update(ctx, &pod)
-	if err != nil {
-		return errorReturn(err)
-	}
-	return reconcile.Result{}, nil
 }
 
 func (r *MyStateReconciler) getNextMissingPod(myState myappv1.MyState, pods []v1.Pod) (v1.Pod, bool, error) {
@@ -155,7 +146,10 @@ func getPvcForPod(myState *myappv1.MyState, pod *v1.Pod) map[string]v1.Persisten
 	pvcs := make(map[string]v1.PersistentVolumeClaim, len(templates))
 	for i := range templates {
 		pvc := templates[i].DeepCopy()
-		pvc.Name = pvcNameFor(myState, pvc, index)
+		pvc.Name = pvcNameFor(myState, &v1.PersistentVolumeClaim{
+			ObjectMeta: pvc.ObjectMeta,
+			Spec:       pvc.Spec,
+		}, index)
 		pvc.Namespace = myState.Namespace
 		if pvc.Labels != nil {
 			for key, value := range myState.Spec.Selector.MatchLabels {
@@ -164,7 +158,10 @@ func getPvcForPod(myState *myappv1.MyState, pod *v1.Pod) map[string]v1.Persisten
 		} else {
 			pvc.Labels = myState.Spec.Selector.MatchLabels
 		}
-		pvcs[templates[i].Name] = *pvc
+		pvcs[pvc.Name] = v1.PersistentVolumeClaim{
+			ObjectMeta: pvc.ObjectMeta,
+			Spec:       pvc.Spec,
+		}
 	}
 	return pvcs
 }

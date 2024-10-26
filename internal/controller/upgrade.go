@@ -10,7 +10,7 @@ import (
 )
 
 func needUpgrade(myState myappv1.MyState) bool {
-	return fmt.Sprintf("%d", myState.Generation) != myState.Status.CurrentGeneration
+	return fmt.Sprintf("%d", myState.GetGeneration()) != myState.Status.CurrentGeneration
 }
 
 func (r *MyStateReconciler) upgrade(ctx context.Context, myState myappv1.MyState, pods []v1.Pod) (ctrl.Result, error) {
@@ -21,6 +21,8 @@ func (r *MyStateReconciler) upgrade(ctx context.Context, myState myappv1.MyState
 		"current", myState.Status.CurrentGeneration,
 		"target", targetGeneration)
 	for i, pod := range pods {
+		log.Info("pod generation",
+			"generation", pod.Labels[MyStateGenerationLabelName])
 		if pod.Labels[MyStateGenerationLabelName] == targetGeneration {
 			if myState.Status.CurrentReplicas < i {
 				myState.Status.CurrentReplicas = i

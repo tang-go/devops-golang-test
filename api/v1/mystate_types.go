@@ -33,10 +33,10 @@ type MyStateSpec struct {
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 
 	// Template is the template of pod
-	Template v1.PodTemplateSpec `json:"template,omitempty"`
+	Template PodTemplateSpec `json:"template,omitempty"`
 
 	// VolumeClaimTemplates is the templates of pvc in pods
-	VolumeClaimTemplates []v1.PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty"`
+	VolumeClaimTemplates []PVCTemplate `json:"volumeClaimTemplates,omitempty"`
 
 	// ServiceName is the service who serves pods of this statefulSet
 	ServiceName string `json:"serviceName,omitempty"`
@@ -48,6 +48,35 @@ type MyStateSpec struct {
 	// MinReadySeconds int
 
 	Ordinals MyOrdinals `json:"ordinals"`
+}
+
+type PodTemplateSpec struct {
+	// +optional
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:XPreserveUnknownFields
+	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+
+	Spec v1.PodSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+}
+
+type PVCTemplate struct {
+	// Standard object's metadata.
+	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+	// +optional
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:XPreserveUnknownFields
+	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+
+	// spec defines the desired characteristics of a volume requested by a pod author.
+	// More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims
+	// +optional
+	Spec v1.PersistentVolumeClaimSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+
+	// status represents the current information/status of a persistent volume claim.
+	// Read-only.
+	// More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims
+	// +optional
+	Status v1.PersistentVolumeClaimStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
 type MyOrdinals struct {

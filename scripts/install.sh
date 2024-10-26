@@ -16,9 +16,9 @@ for file in "$TARGET_DIR"/*.yaml; do
   fi
 done
 
-repository=dayeguilaiye/my-state
+repository=$(registry)/my-state
 
-sudo docker build -t $repository:latest .
-sudo docker push $repository:latest
+sudo docker build -t $(repository):latest .
+sudo docker push $(repository):latest
 
 KUBECONFIG=/etc/rancher/k3s/k3s.yaml /usr/local/bin/helm upgrade --install my-state-release ./mystate-chart --set controllerManager.manager.image.repository=$repository --set controllerManager.manager.imagePullPolicy=Never
